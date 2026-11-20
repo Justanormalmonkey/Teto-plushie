@@ -76,23 +76,49 @@
 
   <script>
     const tetoBtn = document.getElementById('tetoBtn');
+    const SOUND_URL = 'teto-sound.mp3.mp3';
 
-    const audio = document.createElement('audio');
-    audio.preload = 'auto';
-    audio.src = 'teto-sound.mp3.mp3';
-    audio.style.display = 'none';
-    document.body.appendChild(audio);
-    audio.load();
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = AudioCtx ? new AudioCtx() : null;
+    let tetoBuffer = null;
 
-    function playTetoSound() {
-      try {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      } catch (err) {}
+    const fallbackAudio = new Audio(SOUND_URL);
+    fallbackAudio.preload = 'auto';
+
+    if (audioCtx) {
+      fetch(SOUND_URL)
+        .then((res) => res.arrayBuffer())
+        .then((data) => new Promise((resolve, reject) => {
+          audioCtx.decodeAudioData(data, resolve, reject);
+        }))
+        .then((decoded) => {
+          tetoBuffer = decoded;
+        })
+        .catch(() => {});
     }
 
-    tetoBtn.addEventListener('pointerdown', () => {
+    function playTetoSound() {
+      if (audioCtx && tetoBuffer) {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const source = audioCtx.createBufferSource();
+        source.buffer = tetoBuffer;
+        source.connect(audioCtx.destination);
+        source.start(0);
+        return;
+      }
+
+      try {
+        const clone = fallbackAudio.cloneNode();
+        clone.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    tetoBtn.addEventListener('pointerdown', (e) => {
+      if (e.button && e.button !== 0) return;
       tetoBtn.classList.add('is-pressed');
+      playTetoSound();
     });
 
     function releaseButton() {
@@ -102,7 +128,26 @@
     tetoBtn.addEventListener('pointerup', releaseButton);
     tetoBtn.addEventListener('pointercancel', releaseButton);
     tetoBtn.addEventListener('pointerleave', releaseButton);
-    tetoBtn.addEventListener('click', playTetoSound);
+
+    tetoBtn.addEventListener('click', () => {
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    });
+
+    tetoBtn.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+        e.preventDefault();
+        tetoBtn.classList.add('is-pressed');
+        playTetoSound();
+      }
+    });
+
+    tetoBtn.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        releaseButton();
+      }
+    });
   </script>
 </body>
 </html>
