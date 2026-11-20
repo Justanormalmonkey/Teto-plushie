@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Teto</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .teto-button {
+      background: transparent;
+      border: none;
+      padding: 12px;
+      margin: 0;
+      cursor: pointer;
+      outline: none;
+      touch-action: manipulation;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .teto-button:focus-visible {
+      outline: 3px solid #e64966;
+      outline-offset: 6px;
+      border-radius: 20px;
+    }
+
+    @media (hover: hover) {
+      .teto-button:hover {
+        transform: scale(1.03);
+      }
+    }
+
+    .teto-button.is-pressed,
+    .teto-button:active {
+      transform: scale(0.92);
+    }
+
+    .teto-img {
+      display: block;
+      max-width: min(58vw, 240px);
+      max-height: 55vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .status-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #666666;
+      font-size: 14px;
+      text-align: center;
+      max-width: 88vw;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="tetoBtn" class="teto-button" type="button" aria-label="Press Kasane Teto plush">
+    <img id="tetoImg" alt="Kasane Teto Plush" class="teto-img" draggable="false" />
+  </button>
+
+  <div id="statusMsg" class="status-msg"></div>
+
+  <script>
+    const tetoBtn = document.getElementById('tetoBtn');
+    const tetoImg = document.getElementById('tetoImg');
+    const statusMsg = document.getElementById('statusMsg');
+
+    const IMG_CANDIDATES = [
+      'teto-plush.jpg', 'teto-plush.JPG',
+      'teto-plush.jpeg', 'teto-plush.JPEG',
+      'teto-plush.png', 'teto-plush.PNG',
+      'teto-plush.webp'
+    ];
+
+    const SOUND_CANDIDATES = [
+      'teto-sound.mp3', 'teto-sound.MP3',
+      'teto-sound.m4a', 'teto-sound.M4A',
+      'teto-sound.wav', 'teto-sound.WAV',
+      'teto-sound.mp4', 'teto-sound.MP4'
+    ];
+
+    let mediaEl = null;
+
+    function showError(text) {
+      statusMsg.textContent = text;
+      statusMsg.style.display = 'block';
+    }
+
+    function showImage(src) {
+      tetoImg.onload = () => {
+        tetoImg.style.opacity = '1';
+        statusMsg.style.display = 'none';
+      };
+      tetoImg.onerror = () => {
+        showError('Found "' + src + '" but your browser could not open this image format.');
+      };
+      tetoImg.src = src;
+    }
+
+    function mountMedia(src) {
+      if (mediaEl) return;
+      const isVideo = /\.(mp4|mov|webm)$/i.test(src);
+      mediaEl = document.createElement(isVideo ? 'video' : 'audio');
+      mediaEl.setAttribute('playsinline', '');
+      mediaEl.setAttribute('webkit-playsinline', '');
+      mediaEl.playsInline = true;
+      mediaEl.preload = 'auto';
+      mediaEl.style.position = 'fixed';
+      mediaEl.style.width = '1px';
+      mediaEl.style.height = '1px';
+      mediaEl.style.opacity = '0';
+      mediaEl.style.pointerEvents = 'none';
+      mediaEl.style.left = '-9999px';
+      mediaEl.src = src;
+      document.body.appendChild(mediaEl);
+      mediaEl.load();
+    }
+
+    async function findExistingFile(list) {
+      for (const file of list) {
+        try {
+          const res = await fetch(file, { method: 'HEAD' });
+          if (res.ok) return file;
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    async function discoverFromGitHub() {
+      const host = window.location.hostname;
+      if (!host.endsWith('.github.io')) {
+        showError('Picture not found. Make sure your plushie image is uploaded next to index.html.');
+        return null;
+      }
+
+      const owner = host.split('.')[0];
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const repo = (parts.length > 0 && parts[0] !== 'index.html') ? parts[0] : host;
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/`);
+        if (!res.ok) return null;
+        const files = await res.json();
+        if (!Array.isArray(files)) return null;
+
+        const imgFile = files.find(f => /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+        const heicFile = files.find(f => /\.heic$/i.test(f.name));
+        const soundFile = files.find(f => /\.(mp3|m4a|wav|aac|ogg|mp4|mov|webm)$/i.test(f.name));
+
+        return {
+          img: imgFile ? encodeURIComponent(imgFile.name) : null,
+          heic: heicFile ? heicFile.name : null,
+          sound: soundFile ? encodeURIComponent(soundFile.name) : null
+        };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    (async () => {
+      const directImg = await findExistingFile(IMG_CANDIDATES);
+      const directSound = await findExistingFile(SOUND_CANDIDATES);
+
+      if (directImg) showImage(directImg);
+      if (directSound) mountMedia(directSound);
+
+      if (!directImg || !directSound) {
+        const found = await discoverFromGitHub();
+        if (!directImg) {
+          if (found && found.img) {
+            showImage(found.img);
+          } else if (found && found.heic) {
+            showError('Your photo "' + found.heic + '" is .HEIC—convert it to .JPG and upload it to GitHub.');
+          } else {
+            showError('No plushie photo found in your GitHub project yet.');
+          }
+        }
+        if (!directSound && found && found.sound) {
+          mountMedia(found.sound);
+        }
+      }
+    })();
+
+    function playTetoSound() {
+      if (!mediaEl) return;
+      try {
+        mediaEl.currentTime = 0;
+        mediaEl.play().catch(() => {});
+      } catch (err) {}
+    }
+
+    tetoBtn.addEventListener('pointerdown', () => {
+      tetoBtn.classList.add('is-pressed');
+    });
+
+    function releaseButton() {
+      tetoBtn.classList.remove('is-pressed');
+    }
+
+    tetoBtn.addEventListener('pointerup', releaseButton);
+    tetoBtn.addEventListener('pointercancel', releaseButton);
+    tetoBtn.addEventListener('pointerleave', releaseButton);
+    tetoBtn.addEventListener('click', playTetoSound);
+  </script>
+</body>
+</html>
