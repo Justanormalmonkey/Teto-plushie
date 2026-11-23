@@ -79,72 +79,24 @@
 <body>
 
   <button id="tetoBtn" class="teto-button" type="button" aria-label="Press Kasane Teto plush">
-    <img id="imgFront" src="teto-plush.png.JPG" alt="Kasane Teto Plush" class="teto-img is-active" draggable="false" />
+    <img src="teto-plush.png.JPG" alt="Kasane Teto Front" class="teto-img is-active" draggable="false" />
+    <img src="teto-left.png.JPG" alt="Kasane Teto Left" class="teto-img" draggable="false" />
+    <img src="teto-back.png.AVIF" alt="Kasane Teto Back" class="teto-img" draggable="false" />
+    <img src="teto-left.png.JPG" alt="Kasane Teto Right" class="teto-img is-mirrored" draggable="false" />
   </button>
 
   <script>
     const tetoBtn = document.getElementById('tetoBtn');
-    const imgFront = document.getElementById('imgFront');
-    const SOUND_URL = 'teto-sound.mp3.mp3';
-
-    // Preload and mount spin frames
-    const EXTS = ['JPG', 'jpg', 'PNG', 'png', 'JPEG', 'jpeg', 'WEBP', 'webp'];
-    let poseElements = [imgFront];
+    const poses = Array.from(document.querySelectorAll('.teto-img'));
     let currentPose = 0;
 
-    function probeSingle(url) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(url);
-        img.onerror = () => resolve(null);
-        img.src = url;
-      });
-    }
-
-    async function findPoseImage(baseName) {
-      const results = await Promise.all(EXTS.map((ext) => probeSingle(`${baseName}.${ext}`)));
-      return results.find(Boolean) || null;
-    }
-
-    function createPoseImg(src, mirrored) {
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = 'Kasane Teto Plush';
-      img.draggable = false;
-      img.className = mirrored ? 'teto-img is-mirrored' : 'teto-img';
-      tetoBtn.appendChild(img);
-      return img;
-    }
-
-    (async () => {
-      const [leftSrc, backSrc, rightSrc] = await Promise.all([
-        findPoseImage('teto-left'),
-        findPoseImage('teto-back'),
-        findPoseImage('teto-right')
-      ]);
-
-      const nextPoses = [imgFront];
-      if (leftSrc) nextPoses.push(createPoseImg(leftSrc, false));
-      if (backSrc) nextPoses.push(createPoseImg(backSrc, false));
-      if (rightSrc) {
-        nextPoses.push(createPoseImg(rightSrc, false));
-      } else if (leftSrc) {
-        nextPoses.push(createPoseImg(leftSrc, true));
-      }
-
-      if (nextPoses.length > 1) {
-        poseElements = nextPoses;
-      }
-    })();
-
     function turnTeto() {
-      if (poseElements.length <= 1) return;
-      poseElements[currentPose].classList.remove('is-active');
-      currentPose = (currentPose + 1) % poseElements.length;
-      poseElements[currentPose].classList.add('is-active');
+      poses[currentPose].classList.remove('is-active');
+      currentPose = (currentPose + 1) % poses.length;
+      poses[currentPose].classList.add('is-active');
     }
 
-    // Instant stacking Web Audio
+    const SOUND_URL = 'teto-sound.mp3.mp3';
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const audioCtx = AudioCtx ? new AudioCtx() : null;
     let tetoBuffer = null;
