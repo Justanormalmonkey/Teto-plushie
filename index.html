@@ -92,22 +92,18 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      opacity: 0;
+      opacity: 0.48;
       filter: grayscale(65%);
       transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, filter 0.2s ease;
     }
 
-    .steel-ball-btn.is-ready {
-      opacity: 0.48;
-    }
-
-    .steel-ball-btn.is-ready.is-active {
+    .steel-ball-btn.is-active {
       opacity: 1;
       filter: drop-shadow(0 0 8px rgba(102, 224, 52, 0.7));
     }
 
     @media (hover: hover) {
-      .steel-ball-btn.is-ready:hover {
+      .steel-ball-btn:hover {
         transform: scale(1.06);
       }
     }
@@ -143,75 +139,23 @@
 <body>
 
   <button id="steelBallBtn" class="steel-ball-btn" type="button" aria-label="Toggle Teto spin" aria-pressed="false">
-    <img id="steelBallImg" alt="Steel Ball Spin Toggle" class="steel-ball-img" draggable="false" />
+    <img src="steel-ball.png.PNG" alt="Steel Ball Spin Toggle" class="steel-ball-img" draggable="false" />
   </button>
 
   <button id="tetoBtn" class="teto-button" type="button" aria-label="Press Kasane Teto plush">
-    <img id="imgFront" alt="Kasane Teto Front" class="teto-img is-active" style="opacity: 0;" draggable="false" />
-    <img id="imgLeft" src="teto-left.png.JPG" alt="Kasane Teto Left" class="teto-img" draggable="false" />
-    <img id="imgBack" alt="Kasane Teto Back" class="teto-img" draggable="false" />
-    <img id="imgRight" src="teto-left.png.JPG" alt="Kasane Teto Right" class="teto-img is-mirrored" draggable="false" />
+    <img src="teto-front.png.PNG" alt="Kasane Teto Front" class="teto-img is-active" draggable="false" />
+    <img src="teto-left.png.JPG" alt="Kasane Teto Left" class="teto-img" draggable="false" />
+    <img src="teto-back.png.jpg" alt="Kasane Teto Back" class="teto-img" draggable="false" />
+    <img src="teto-left.png.JPG" alt="Kasane Teto Right" class="teto-img is-mirrored" draggable="false" />
   </button>
 
   <script>
     const tetoBtn = document.getElementById('tetoBtn');
-    const imgFront = document.getElementById('imgFront');
-    const imgLeft = document.getElementById('imgLeft');
-    const imgBack = document.getElementById('imgBack');
-    const imgRight = document.getElementById('imgRight');
     const steelBallBtn = document.getElementById('steelBallBtn');
-    const steelBallImg = document.getElementById('steelBallImg');
-
     const poses = Array.from(document.querySelectorAll('.teto-img'));
+
     let currentPose = 0;
     let spinActive = false;
-
-    const EXTS = [
-      'PNG', 'png', 'JPG', 'jpg', 'JPEG', 'jpeg',
-      'WEBP', 'webp', 'AVIF', 'avif',
-      'png.PNG', 'png.JPG', 'png.WEBP', 'png.AVIF', 'jpg.JPG', 'png.JPEG'
-    ];
-
-    function probeImg(url) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(url);
-        img.onerror = () => resolve(null);
-        img.src = url;
-      });
-    }
-
-    async function findAnyExt(baseName) {
-      const results = await Promise.all(EXTS.map((ext) => probeImg(`${baseName}.${ext}`)));
-      return results.find(Boolean) || null;
-    }
-
-    imgFront.onload = () => {
-      imgFront.style.opacity = '1';
-    };
-
-    steelBallImg.onload = () => {
-      steelBallBtn.classList.add('is-ready');
-    };
-
-    (async () => {
-      const [foundFront, foundLeft, foundBack, foundBall] = await Promise.all([
-        findAnyExt('teto-front'),
-        findAnyExt('teto-left'),
-        findAnyExt('teto-back'),
-        findAnyExt('steel-ball')
-      ]);
-
-      imgFront.src = foundFront || 'teto-plush.png.JPG';
-      if (foundLeft) {
-        imgLeft.src = foundLeft;
-        imgRight.src = foundLeft;
-      }
-      imgBack.src = foundBack || 'teto-back.png.AVIF';
-      if (foundBall) {
-        steelBallImg.src = foundBall;
-      }
-    })();
 
     function turnTeto() {
       poses[currentPose].classList.remove('is-active');
