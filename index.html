@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Teto</title>
+  <title>Teto Clicker</title>
   <style>
     * {
       box-sizing: border-box;
@@ -23,9 +23,148 @@
       overflow: hidden;
       user-select: none;
       -webkit-user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
+    /* Top HUD */
+    .top-bar {
+      position: fixed;
+      top: calc(14px + env(safe-area-inset-top));
+      left: 0;
+      right: 0;
+      padding: 0 max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left));
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .counter-pill {
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #f6f6f8;
+      border: 1px solid #e6e6ea;
+      border-radius: 999px;
+      padding: 7px 13px;
+      pointer-events: auto;
+      max-width: 100%;
+    }
+
+    .counter-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .counter-emoji {
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .counter-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1c1c1e;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shop-open-btn {
+      justify-self: center;
+      pointer-events: auto;
+      background: #1c1c1e;
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 9px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.12s ease, background-color 0.15s ease;
+    }
+
+    .shop-open-btn:active {
+      transform: scale(0.94);
+    }
+
+    @media (hover: hover) {
+      .shop-open-btn:hover {
+        background: #333336;
+      }
+    }
+
+    /* Steel Ball toggle (hidden until purchased) */
+    .steel-ball-btn {
+      justify-self: end;
+      pointer-events: auto;
+      width: clamp(46px, 12vw, 56px);
+      height: clamp(46px, 12vw, 56px);
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      outline: none;
+      touch-action: manipulation;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.48;
+      filter: grayscale(65%);
+      transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, filter 0.2s ease;
+    }
+
+    .steel-ball-btn.is-unlocked {
+      display: inline-flex;
+    }
+
+    .steel-ball-btn.is-active {
+      opacity: 1;
+      filter: drop-shadow(0 0 8px rgba(102, 224, 52, 0.7));
+    }
+
+    @media (hover: hover) {
+      .steel-ball-btn:hover {
+        transform: scale(1.06);
+      }
+    }
+
+    .steel-ball-btn.is-pressed,
+    .steel-ball-btn:active {
+      transform: scale(0.88);
+    }
+
+    .steel-ball-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .steel-ball-btn.is-active .steel-ball-img {
+      animation: steelBallSpin 2.2s linear infinite;
+    }
+
+    @keyframes steelBallSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Main Teto Button */
     .teto-button {
+      position: relative;
+      z-index: 5;
       background: transparent;
       border: none;
       padding: 12px;
@@ -75,73 +214,221 @@
       transform: scaleX(-1);
     }
 
-    .steel-ball-btn {
+    /* Jumping Baguette Particles */
+    .baguette-particle {
       position: fixed;
-      top: calc(16px + env(safe-area-inset-top));
-      right: calc(16px + env(safe-area-inset-right));
-      width: clamp(48px, 13vw, 62px);
-      height: clamp(48px, 13vw, 62px);
-      padding: 0;
+      top: 0;
+      left: 0;
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      pointer-events: none;
+      z-index: 10;
+      will-change: transform, opacity;
+      font-size: 26px;
+      line-height: 34px;
+      text-align: center;
+    }
+
+    /* Bottom Version Label */
+    .version-label {
+      position: fixed;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      font-weight: 500;
+      color: #9e9ea7;
+      letter-spacing: 0.02em;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    /* Shop Modal */
+    .shop-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .shop-overlay.is-open {
+      display: flex;
+    }
+
+    .shop-card {
+      width: 100%;
+      max-width: 390px;
+      max-height: 82vh;
+      overflow-y: auto;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+    }
+
+    .shop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .shop-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .shop-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1c1c1e;
       margin: 0;
-      background: transparent;
-      border: none;
+    }
+
+    .shop-balance {
+      font-size: 13px;
+      color: #66666e;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .shop-close-btn {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
+      border: none;
+      background: #f2f2f5;
+      color: #333336;
+      font-size: 18px;
+      font-weight: 600;
       cursor: pointer;
-      outline: none;
-      touch-action: manipulation;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      opacity: 0.48;
-      filter: grayscale(65%);
-      transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, filter 0.2s ease;
     }
 
-    .steel-ball-btn.is-active {
-      opacity: 1;
-      filter: drop-shadow(0 0 8px rgba(102, 224, 52, 0.7));
+    .shop-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    @media (hover: hover) {
-      .steel-ball-btn:hover {
-        transform: scale(1.06);
-      }
+    .shop-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: #f8f8fa;
+      border: 1px solid #ececf0;
     }
 
-    .steel-ball-btn.is-pressed,
-    .steel-ball-btn:active {
-      transform: scale(0.88);
-    }
-
-    .steel-ball-btn:focus-visible {
-      outline: 3px solid #5bc932;
-      outline-offset: 4px;
-    }
-
-    .steel-ball-img {
-      width: 100%;
-      height: 100%;
+    .shop-item-img {
+      width: 48px;
+      height: 48px;
       object-fit: contain;
-      pointer-events: none;
-      -webkit-user-drag: none;
+      flex-shrink: 0;
+      display: block;
     }
 
-    .steel-ball-btn.is-active .steel-ball-img {
-      animation: steelBallSpin 2.2s linear infinite;
+    .shop-item-emoji {
+      width: 48px;
+      height: 48px;
+      font-size: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
-    @keyframes steelBallSpin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    .shop-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .shop-item-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1c1c1e;
+      margin: 0 0 3px 0;
+    }
+
+    .shop-item-desc {
+      font-size: 12px;
+      color: #5c5c64;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .shop-item-meta {
+      font-size: 11px;
+      font-weight: 600;
+      color: #e64966;
+      margin-top: 4px;
+    }
+
+    .buy-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: #e64966;
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 78px;
+      touch-action: manipulation;
+    }
+
+    .buy-btn:disabled {
+      background: #d5d5da;
+      color: #8a8a92;
+      cursor: not-allowed;
+    }
+
+    .buy-btn.is-owned {
+      background: #34c759;
+      color: #ffffff;
+      cursor: default;
+    }
+
+    .mini-baguette-icon {
+      width: 15px;
+      height: 15px;
+      object-fit: contain;
+      display: inline-block;
     }
   </style>
 </head>
 <body>
 
-  <button id="steelBallBtn" class="steel-ball-btn" type="button" aria-label="Toggle Teto spin" aria-pressed="false">
-    <img src="steel-ball.png.PNG" alt="Steel Ball Spin Toggle" class="steel-ball-img" draggable="false" />
-  </button>
+  <!-- Top HUD -->
+  <div class="top-bar">
+    <div class="counter-pill" aria-label="Baguettes count">
+      <span id="counterIconSlot"></span>
+      <span id="baguetteCount" class="counter-value">0</span>
+    </div>
 
+    <button id="shopOpenBtn" class="shop-open-btn" type="button">Shop</button>
+
+    <button id="steelBallBtn" class="steel-ball-btn" type="button" aria-label="Toggle Teto spin" aria-pressed="false">
+      <img src="steel-ball.png.PNG" alt="Steel Ball Spin Toggle" class="steel-ball-img" draggable="false" />
+    </button>
+  </div>
+
+  <!-- Center Plushie -->
   <button id="tetoBtn" class="teto-button" type="button" aria-label="Press Kasane Teto plush">
     <img src="teto-front.png.PNG" alt="Kasane Teto Front" class="teto-img is-active" draggable="false" />
     <img src="teto-left.png.JPG" alt="Kasane Teto Left" class="teto-img" draggable="false" />
@@ -149,14 +436,218 @@
     <img src="teto-left.png.JPG" alt="Kasane Teto Right" class="teto-img is-mirrored" draggable="false" />
   </button>
 
+  <!-- Version Label -->
+  <div class="version-label">version 3.0</div>
+
+  <!-- Shop Modal -->
+  <div id="shopOverlay" class="shop-overlay" role="dialog" aria-modal="true" aria-label="Item Shop">
+    <div class="shop-card" id="shopCard">
+      <div class="shop-header">
+        <div class="shop-title-wrap">
+          <h2 class="shop-title">Shop</h2>
+          <div class="shop-balance">
+            <span>Baguettes:</span>
+            <span id="shopBalanceIconSlot"></span>
+            <strong id="shopBalanceValue">0</strong>
+          </div>
+        </div>
+        <button id="shopCloseBtn" class="shop-close-btn" type="button" aria-label="Close shop">✕</button>
+      </div>
+
+      <div class="shop-items">
+        <!-- Baguette Upgrade -->
+        <div class="shop-item">
+          <span id="shopBaguetteImgSlot"></span>
+          <div class="shop-item-info">
+            <h3 class="shop-item-name">Baguette Upgrade</h3>
+            <p class="shop-item-desc">Increases baguettes your clicks give by +1.</p>
+            <div id="baguettePowerMeta" class="shop-item-meta">Per click: +1</div>
+          </div>
+          <button id="buyUpgradeBtn" class="buy-btn" type="button"></button>
+        </div>
+
+        <!-- Mysterious Ball -->
+        <div class="shop-item">
+          <img src="steel-ball.png.PNG" alt="Mysterious Ball" class="shop-item-img" draggable="false" />
+          <div class="shop-item-info">
+            <h3 class="shop-item-name">Mysterious Ball</h3>
+            <p class="shop-item-desc">a strange green ball that allows the user to master a mysterious force</p>
+            <div class="shop-item-meta">2× Baguettes • Unlocks Spin</div>
+          </div>
+          <button id="buyBallBtn" class="buy-btn" type="button"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const SAVE_KEY = 'tetoClickerSave_v3';
+
     const tetoBtn = document.getElementById('tetoBtn');
-    const steelBallBtn = document.getElementById('steelBallBtn');
     const poses = Array.from(document.querySelectorAll('.teto-img'));
+    const steelBallBtn = document.getElementById('steelBallBtn');
 
+    const baguetteCountEl = document.getElementById('baguetteCount');
+    const shopOpenBtn = document.getElementById('shopOpenBtn');
+    const shopOverlay = document.getElementById('shopOverlay');
+    const shopCloseBtn = document.getElementById('shopCloseBtn');
+    const shopBalanceValueEl = document.getElementById('shopBalanceValue');
+    const baguettePowerMeta = document.getElementById('baguettePowerMeta');
+    const buyUpgradeBtn = document.getElementById('buyUpgradeBtn');
+    const buyBallBtn = document.getElementById('buyBallBtn');
+
+    const counterIconSlot = document.getElementById('counterIconSlot');
+    const shopBalanceIconSlot = document.getElementById('shopBalanceIconSlot');
+    const shopBaguetteImgSlot = document.getElementById('shopBaguetteImgSlot');
+
+    let baguettes = 0;
+    let baguetteUpgrades = 0;
+    let hasBall = false;
+    let spinActive = false; // Always deactivated by default when opening the site
     let currentPose = 0;
-    let spinActive = false;
+    let baguetteImgUrl = null;
 
+    // Load saved progress
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (typeof saved.baguettes === 'number') baguettes = saved.baguettes;
+        if (typeof saved.baguetteUpgrades === 'number') baguetteUpgrades = saved.baguetteUpgrades;
+        if (typeof saved.hasBall === 'boolean') hasBall = saved.hasBall;
+      }
+    } catch (e) {}
+
+    function saveGame() {
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({
+          baguettes,
+          baguetteUpgrades,
+          hasBall
+        }));
+      } catch (e) {}
+    }
+
+    function getUpgradeCost() {
+      return 100 * Math.pow(2, baguetteUpgrades);
+    }
+
+    function getPerClick() {
+      return (1 + baguetteUpgrades) * (hasBall ? 2 : 1);
+    }
+
+    function makeMiniBaguetteHTML() {
+      return baguetteImgUrl
+        ? `<img src="${baguetteImgUrl}" alt="" class="mini-baguette-icon" draggable="false" />`
+        : '<span>🥖</span>';
+    }
+
+    function renderBaguetteIcons() {
+      if (baguetteImgUrl) {
+        counterIconSlot.innerHTML = `<img src="${baguetteImgUrl}" alt="Baguette" class="counter-icon" draggable="false" />`;
+        shopBalanceIconSlot.innerHTML = `<img src="${baguetteImgUrl}" alt="" class="mini-baguette-icon" draggable="false" />`;
+        shopBaguetteImgSlot.innerHTML = `<img src="${baguetteImgUrl}" alt="Baguette Upgrade" class="shop-item-img" draggable="false" />`;
+      } else {
+        counterIconSlot.innerHTML = `<span class="counter-emoji">🥖</span>`;
+        shopBalanceIconSlot.innerHTML = `<span>🥖</span>`;
+        shopBaguetteImgSlot.innerHTML = `<span class="shop-item-emoji">🥖</span>`;
+      }
+    }
+
+    function updateUI() {
+      baguetteCountEl.textContent = baguettes.toLocaleString();
+      shopBalanceValueEl.textContent = baguettes.toLocaleString();
+
+      const perClick = getPerClick();
+      baguettePowerMeta.textContent = `Per click: +${perClick.toLocaleString()}${hasBall ? ' (2× active)' : ''}`;
+
+      const upgCost = getUpgradeCost();
+      buyUpgradeBtn.innerHTML = `${makeMiniBaguetteHTML()} <span>${upgCost.toLocaleString()}</span>`;
+      buyUpgradeBtn.disabled = baguettes < upgCost;
+
+      if (hasBall) {
+        steelBallBtn.classList.add('is-unlocked');
+        buyBallBtn.textContent = 'Owned';
+        buyBallBtn.classList.add('is-owned');
+        buyBallBtn.disabled = true;
+      } else {
+        steelBallBtn.classList.remove('is-unlocked');
+        buyBallBtn.innerHTML = `${makeMiniBaguetteHTML()} <span>1,000</span>`;
+        buyBallBtn.classList.remove('is-owned');
+        buyBallBtn.disabled = baguettes < 1000;
+      }
+    }
+
+    // Auto-detect baguette image in any iPhone extension
+    const BAGUETTE_NAMES = ['baguette', 'teto-baguette'];
+    const BAGUETTE_EXTS = [
+      'PNG', 'png', 'JPG', 'jpg', 'JPEG', 'jpeg',
+      'WEBP', 'webp', 'AVIF', 'avif',
+      'png.PNG', 'png.JPG', 'png.jpg', 'png.WEBP', 'png.AVIF', 'jpg.JPG'
+    ];
+
+    function probeImg(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(url);
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    renderBaguetteIcons();
+    updateUI();
+
+    (async () => {
+      const checks = [];
+      for (const name of BAGUETTE_NAMES) {
+        for (const ext of BAGUETTE_EXTS) {
+          checks.push(probeImg(`${name}.${ext}`));
+        }
+      }
+      const results = await Promise.all(checks);
+      const found = results.find(Boolean);
+      if (found) {
+        baguetteImgUrl = found;
+        renderBaguetteIcons();
+        updateUI();
+      }
+    })();
+
+    // Shop controls
+    shopOpenBtn.addEventListener('click', () => {
+      updateUI();
+      shopOverlay.classList.add('is-open');
+    });
+
+    shopCloseBtn.addEventListener('click', () => {
+      shopOverlay.classList.remove('is-open');
+    });
+
+    shopOverlay.addEventListener('click', (e) => {
+      if (e.target === shopOverlay) {
+        shopOverlay.classList.remove('is-open');
+      }
+    });
+
+    buyUpgradeBtn.addEventListener('click', () => {
+      const cost = getUpgradeCost();
+      if (baguettes < cost) return;
+      baguettes -= cost;
+      baguetteUpgrades += 1;
+      saveGame();
+      updateUI();
+    });
+
+    buyBallBtn.addEventListener('click', () => {
+      if (hasBall || baguettes < 1000) return;
+      baguettes -= 1000;
+      hasBall = true;
+      saveGame();
+      updateUI();
+    });
+
+    // Spin logic
     function turnTeto() {
       poses[currentPose].classList.remove('is-active');
       currentPose = (currentPose + 1) % poses.length;
@@ -177,11 +668,91 @@
     steelBallBtn.addEventListener('pointerleave', releaseBall);
 
     steelBallBtn.addEventListener('click', () => {
+      if (!hasBall) return;
       spinActive = !spinActive;
       steelBallBtn.classList.toggle('is-active', spinActive);
       steelBallBtn.setAttribute('aria-pressed', String(spinActive));
     });
 
+    // Jumping Baguettes Particle System
+    const activeParticles = [];
+    let lastFrameTime = 0;
+    let animRunning = false;
+
+    function spawnBaguetteParticle() {
+      // Cap simultaneous particles so rapid tapping stays ultra smooth
+      if (activeParticles.length > 35) {
+        const oldest = activeParticles.shift();
+        oldest.el.remove();
+      }
+
+      const rect = tetoBtn.getBoundingClientRect();
+      const startX = rect.left + rect.width * (0.35 + Math.random() * 0.3) - 17;
+      const startY = rect.top + rect.height * (0.3 + Math.random() * 0.25) - 17;
+
+      const el = baguetteImgUrl ? document.createElement('img') : document.createElement('div');
+      if (baguetteImgUrl) {
+        el.src = baguetteImgUrl;
+        el.alt = '';
+        el.draggable = false;
+      } else {
+        el.textContent = '🥖';
+      }
+      el.className = 'baguette-particle';
+      document.body.appendChild(el);
+
+      activeParticles.push({
+        el,
+        x: startX,
+        y: startY,
+        vx: (Math.random() - 0.5) * 280,
+        vy: -(330 + Math.random() * 170),
+        rot: Math.random() * 360,
+        vrot: (Math.random() - 0.5) * 520,
+        life: 0,
+        maxLife: 0.72
+      });
+
+      if (!animRunning) {
+        animRunning = true;
+        lastFrameTime = performance.now();
+        requestAnimationFrame(stepParticles);
+      }
+    }
+
+    function stepParticles(now) {
+      const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
+      lastFrameTime = now;
+
+      for (let i = activeParticles.length - 1; i >= 0; i--) {
+        const p = activeParticles[i];
+        p.life += dt;
+        if (p.life >= p.maxLife) {
+          p.el.remove();
+          activeParticles.splice(i, 1);
+          continue;
+        }
+
+        p.vy += 1050 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rot += p.vrot * dt;
+
+        const progress = p.life / p.maxLife;
+        const opacity = progress < 0.6 ? 1 : 1 - (progress - 0.6) / 0.4;
+
+        p.el.style.transform = `translate3d(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px, 0) rotate(${p.rot.toFixed(1)}deg)`;
+        p.el.style.opacity = opacity.toFixed(2);
+      }
+
+      if (activeParticles.length > 0) {
+        requestAnimationFrame(stepParticles);
+      } else {
+        animRunning = false;
+      }
+    }
+
+    // Instant Stacking Web Audio
     const SOUND_URL = 'teto-sound.mp3.mp3';
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const audioCtx = AudioCtx ? new AudioCtx() : null;
@@ -220,11 +791,19 @@
       } catch (e) {}
     }
 
+    function handleTetoPress() {
+      baguettes += getPerClick();
+      saveGame();
+      updateUI();
+      if (hasBall && spinActive) turnTeto();
+      spawnBaguetteParticle();
+      playTetoSound();
+    }
+
     tetoBtn.addEventListener('pointerdown', (e) => {
       if (e.button && e.button !== 0) return;
       tetoBtn.classList.add('is-pressed');
-      if (spinActive) turnTeto();
-      playTetoSound();
+      handleTetoPress();
     });
 
     function releaseButton() {
@@ -245,8 +824,7 @@
       if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
         e.preventDefault();
         tetoBtn.classList.add('is-pressed');
-        if (spinActive) turnTeto();
-        playTetoSound();
+        handleTetoPress();
       }
     });
 
