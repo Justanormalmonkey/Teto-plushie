@@ -26,7 +26,6 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Top HUD */
     .top-bar {
       position: fixed;
       top: calc(14px + env(safe-area-inset-top));
@@ -60,12 +59,6 @@
       object-fit: contain;
       flex-shrink: 0;
       display: block;
-    }
-
-    .counter-emoji {
-      font-size: 16px;
-      line-height: 1;
-      flex-shrink: 0;
     }
 
     .counter-value {
@@ -113,7 +106,6 @@
       }
     }
 
-    /* Steel Ball toggle (hidden until purchased) */
     .steel-ball-btn {
       justify-self: end;
       pointer-events: auto;
@@ -172,7 +164,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Main Teto Button */
     .teto-button {
       position: relative;
       z-index: 5;
@@ -225,7 +216,6 @@
       transform: scaleX(-1);
     }
 
-    /* Jumping Baguette Particles */
     .baguette-particle {
       position: fixed;
       top: 0;
@@ -236,12 +226,8 @@
       pointer-events: none;
       z-index: 10;
       will-change: transform, opacity;
-      font-size: 26px;
-      line-height: 34px;
-      text-align: center;
     }
 
-    /* Unlock Toast */
     .unlock-toast {
       position: fixed;
       bottom: calc(40px + env(safe-area-inset-bottom));
@@ -266,7 +252,6 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* Bottom Version Label */
     .version-label {
       position: fixed;
       bottom: calc(12px + env(safe-area-inset-bottom));
@@ -280,7 +265,6 @@
       z-index: 15;
     }
 
-    /* Modals (Shop & Skins) */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -366,8 +350,7 @@
       border: 1px solid #ececf0;
     }
 
-    .item-row.is-locked .item-img,
-    .item-row.is-locked .item-emoji {
+    .item-row.is-locked .item-img {
       opacity: 0.5;
     }
 
@@ -378,16 +361,6 @@
       flex-shrink: 0;
       display: block;
       border-radius: 8px;
-    }
-
-    .item-emoji {
-      width: 48px;
-      height: 48px;
-      font-size: 32px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
     }
 
     .item-info {
@@ -487,7 +460,7 @@
   <!-- Top HUD -->
   <div class="top-bar">
     <div class="counter-pill" aria-label="Baguettes count">
-      <span id="counterIconSlot"></span>
+      <img src="Baguette%20.AVIF" alt="Baguette" class="counter-icon" draggable="false" />
       <span id="baguetteCount" class="counter-value">0</span>
     </div>
 
@@ -504,14 +477,14 @@
   <!-- Center Plushie -->
   <button id="tetoBtn" class="teto-button" type="button" aria-label="Press Kasane Teto plush">
     <img id="imgFront" src="teto-front.png.PNG" alt="Teto Front" class="teto-img is-active" draggable="false" />
-    <img id="imgBaguetteTeto" alt="Baguette Teto Front" class="teto-img" draggable="false" />
+    <img id="imgBaguetteTeto" src="baguette-teto.JPG" alt="Baguette Teto Front" class="teto-img" draggable="false" />
     <img id="imgLeft" src="teto-left.png.JPG" alt="Teto Left" class="teto-img" draggable="false" />
-    <img id="imgFatTeto" alt="Fat Teto Left" class="teto-img" draggable="false" />
+    <img id="imgFatTeto" src="fat-teto.PNG" alt="Fat Teto Left" class="teto-img" draggable="false" />
     <img id="imgBack" src="teto-back.png.png" alt="Teto Back" class="teto-img" draggable="false" />
     <img id="imgRight" src="teto-left.png.JPG" alt="Teto Right" class="teto-img is-mirrored" draggable="false" />
-    <img id="imgFatTetoRight" alt="Fat Teto Right" class="teto-img is-mirrored" draggable="false" />
-    <img id="imgPearto" alt="Pearto" class="teto-img" draggable="false" />
-    <img id="imgPoteto" alt="Poteto" class="teto-img" draggable="false" />
+    <img id="imgFatTetoRight" src="fat-teto.PNG" alt="Fat Teto Right" class="teto-img is-mirrored" draggable="false" />
+    <img id="imgPearto" src="pearto.png" alt="Pearto" class="teto-img" draggable="false" />
+    <img id="imgPoteto" src="poteto.jpg" alt="Poteto" class="teto-img" draggable="false" />
   </button>
 
   <!-- Unlock Notification -->
@@ -528,7 +501,7 @@
           <h2 class="modal-title">Shop</h2>
           <div class="modal-subtitle">
             <span>Baguettes:</span>
-            <span id="shopBalanceIconSlot"></span>
+            <img src="Baguette%20.AVIF" alt="" class="mini-baguette-icon" draggable="false" />
             <strong id="shopBalanceValue">0</strong>
           </div>
         </div>
@@ -537,7 +510,7 @@
 
       <div class="item-list">
         <div class="item-row">
-          <span id="shopBaguetteImgSlot"></span>
+          <img src="Baguette%20.AVIF" alt="Baguette Upgrade" class="item-img" draggable="false" />
           <div class="item-info">
             <div class="item-name-row">
               <h3 class="item-name">Baguette Upgrade</h3>
@@ -581,6 +554,7 @@
   <script>
     const SAVE_KEY_V4 = 'tetoClickerSave_v4';
     const SAVE_KEY_V3 = 'tetoClickerSave_v3';
+    const BAGUETTE_IMG = 'Baguette%20.AVIF';
 
     const tetoBtn = document.getElementById('tetoBtn');
     const allPoseImgs = Array.from(document.querySelectorAll('.teto-img'));
@@ -612,11 +586,6 @@
     const skinsMultiplierInfo = document.getElementById('skinsMultiplierInfo');
     const skinsList = document.getElementById('skinsList');
 
-    const counterIconSlot = document.getElementById('counterIconSlot');
-    const shopBalanceIconSlot = document.getElementById('shopBalanceIconSlot');
-    const shopBaguetteImgSlot = document.getElementById('shopBaguetteImgSlot');
-
-    // Game State
     let baguettes = 0;
     let baguetteUpgrades = 0;
     let hasBall = false;
@@ -634,15 +603,6 @@
       fatTeto: false,
       poteto: false,
       pearto: false
-    };
-
-    const skinImages = {
-      teto: 'teto-front.png.PNG',
-      baguetteTeto: null,
-      fatTeto: null,
-      poteto: null,
-      pearto: null,
-      baguette: null
     };
 
     try {
@@ -750,23 +710,23 @@
     function renderPose() {
       allPoseImgs.forEach((img) => img.classList.remove('is-active'));
 
-      if (mainSkin === 'pearto' && skinImages.pearto) {
+      if (mainSkin === 'pearto') {
         imgPearto.classList.add('is-active');
         return;
       }
-      if (mainSkin === 'poteto' && skinImages.poteto) {
+      if (mainSkin === 'poteto') {
         imgPoteto.classList.add('is-active');
         return;
       }
 
       if (currentPose === 0) {
-        if (mainSkin === 'baguette-teto' && skinImages.baguetteTeto) {
+        if (mainSkin === 'baguette-teto') {
           imgBaguetteTeto.classList.add('is-active');
         } else {
           imgFront.classList.add('is-active');
         }
       } else if (currentPose === 1) {
-        if (fatTetoEquipped && skinImages.fatTeto) {
+        if (fatTetoEquipped) {
           imgFatTeto.classList.add('is-active');
         } else {
           imgLeft.classList.add('is-active');
@@ -774,29 +734,11 @@
       } else if (currentPose === 2) {
         imgBack.classList.add('is-active');
       } else if (currentPose === 3) {
-        if (fatTetoEquipped && skinImages.fatTeto) {
+        if (fatTetoEquipped) {
           imgFatTetoRight.classList.add('is-active');
         } else {
           imgRight.classList.add('is-active');
         }
-      }
-    }
-
-    function makeMiniBaguetteHTML() {
-      return skinImages.baguette
-        ? `<img src="${skinImages.baguette}" alt="" class="mini-baguette-icon" draggable="false" />`
-        : '<span>🥖</span>';
-    }
-
-    function renderBaguetteIcons() {
-      if (skinImages.baguette) {
-        counterIconSlot.innerHTML = `<img src="${skinImages.baguette}" alt="Baguette" class="counter-icon" draggable="false" />`;
-        shopBalanceIconSlot.innerHTML = `<img src="${skinImages.baguette}" alt="" class="mini-baguette-icon" draggable="false" />`;
-        shopBaguetteImgSlot.innerHTML = `<img src="${skinImages.baguette}" alt="Baguette Upgrade" class="item-img" draggable="false" />`;
-      } else {
-        counterIconSlot.innerHTML = `<span class="counter-emoji">🥖</span>`;
-        shopBalanceIconSlot.innerHTML = `<span>🥖</span>`;
-        shopBaguetteImgSlot.innerHTML = `<span class="item-emoji">🥖</span>`;
       }
     }
 
@@ -812,8 +754,7 @@
           id: 'teto',
           name: 'Teto',
           mult: '1×',
-          img: skinImages.teto,
-          fallbackEmoji: '🎀',
+          img: 'teto-front.png.PNG',
           desc: 'Default Teto plushie. Can spin.',
           isUnlocked: true,
           hint: 'Starter skin',
@@ -823,8 +764,7 @@
           id: 'baguette-teto',
           name: 'Baguette Teto',
           mult: '2×',
-          img: skinImages.baguetteTeto,
-          fallbackEmoji: '🥖',
+          img: 'baguette-teto.JPG',
           desc: 'Teto holding a baguette. Can spin.',
           isUnlocked: unlocked.baguetteTeto,
           hint: 'Hint: Keep upgrading your baguettes until she gets hungry...',
@@ -834,8 +774,7 @@
           id: 'fat-teto',
           name: 'Fat Teto',
           mult: '3×',
-          img: skinImages.fatTeto,
-          fallbackEmoji: '🧸',
+          img: 'fat-teto.PNG',
           desc: 'Left/Right side skin for Teto or Baguette Teto. Can spin.',
           isUnlocked: unlocked.fatTeto,
           hint: 'Hint: Baguette Teto hides a rounder side if you poke her sideways enough...',
@@ -845,8 +784,7 @@
           id: 'poteto',
           name: 'Poteto',
           mult: '4×',
-          img: skinImages.poteto,
-          fallbackEmoji: '🥔',
+          img: 'poteto.jpg',
           desc: 'Potato Teto. Cannot spin.',
           isUnlocked: unlocked.poteto,
           hint: 'Hint: Let a heavier side of Teto experience the Spin for a little while...',
@@ -856,8 +794,7 @@
           id: 'pearto',
           name: 'Pearto',
           mult: '5×',
-          img: skinImages.pearto,
-          fallbackEmoji: '🍐',
+          img: 'pearto.png',
           desc: 'Pear Teto. Cannot spin.',
           isUnlocked: unlocked.pearto,
           hint: 'Hint: Only someone hoarding a massive fortune of baguettes is worthy...',
@@ -871,16 +808,12 @@
         const row = document.createElement('div');
         row.className = skin.isUnlocked ? 'item-row' : 'item-row is-locked';
 
-        const iconHtml = skin.img
-          ? `<img src="${skin.img}" alt="${skin.name}" class="item-img" draggable="false" />`
-          : `<span class="item-emoji">${skin.fallbackEmoji}</span>`;
-
         const metaText = skin.isUnlocked
           ? (skin.isAddon ? 'Add-on for Teto & Baguette Teto • Unlocked' : 'Unlocked • Multiplier Active')
           : skin.hint;
 
         row.innerHTML = `
-          ${iconHtml}
+          <img src="${skin.img}" alt="${skin.name}" class="item-img" draggable="false" />
           <div class="item-info">
             <div class="item-name-row">
               <h3 class="item-name">${skin.name}</h3>
@@ -953,7 +886,7 @@
       baguettePowerMeta.textContent = `Per click: +${perClick.toLocaleString()} (${totalMult}× total)`;
 
       const upgCost = getUpgradeCost();
-      buyUpgradeBtn.innerHTML = `${makeMiniBaguetteHTML()} <span>${upgCost.toLocaleString()}</span>`;
+      buyUpgradeBtn.innerHTML = `<img src="${BAGUETTE_IMG}" alt="" class="mini-baguette-icon" draggable="false" /> <span>${upgCost.toLocaleString()}</span>`;
       buyUpgradeBtn.disabled = baguettes < upgCost;
 
       if (hasBall) {
@@ -963,7 +896,7 @@
         buyBallBtn.disabled = true;
       } else {
         steelBallBtn.classList.remove('is-unlocked');
-        buyBallBtn.innerHTML = `${makeMiniBaguetteHTML()} <span>1,000</span>`;
+        buyBallBtn.innerHTML = `<img src="${BAGUETTE_IMG}" alt="" class="mini-baguette-icon" draggable="false" /> <span>1,000</span>`;
         buyBallBtn.classList.remove('is-owned');
         buyBallBtn.disabled = baguettes < 1000;
       }
@@ -973,73 +906,10 @@
       }
     }
 
-    const EXTS = [
-      'PNG', 'png', 'JPG', 'jpg', 'JPEG', 'jpeg',
-      'WEBP', 'webp', 'AVIF', 'avif',
-      'png.PNG', 'png.png', 'png.JPG', 'png.jpg', 'png.WEBP', 'png.AVIF', 'jpg.JPG', 'jpg.jpg'
-    ];
-
-    function probeImg(url) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(url);
-        img.onerror = () => resolve(null);
-        img.src = url;
-      });
-    }
-
-    async function findAnyExt(names) {
-      const checks = [];
-      for (const name of names) {
-        for (const ext of EXTS) {
-          checks.push(probeImg(`${name}.${ext}`));
-        }
-      }
-      const results = await Promise.all(checks);
-      return results.find(Boolean) || null;
-    }
-
     checkUnlocks(false);
-    renderBaguetteIcons();
     renderPose();
     updateUI();
 
-    (async () => {
-      const [baguetteUrl, bagTetoUrl, fatTetoUrl, peartoUrl, potetoUrl] = await Promise.all([
-        findAnyExt(['baguette', 'teto-baguette']),
-        findAnyExt(['baguette-teto', 'teto-baguette-skin']),
-        findAnyExt(['fat-teto', 'teto-fat']),
-        findAnyExt(['pearto']),
-        findAnyExt(['poteto'])
-      ]);
-
-      if (baguetteUrl) {
-        skinImages.baguette = baguetteUrl;
-        renderBaguetteIcons();
-      }
-      if (bagTetoUrl) {
-        skinImages.baguetteTeto = bagTetoUrl;
-        imgBaguetteTeto.src = bagTetoUrl;
-      }
-      if (fatTetoUrl) {
-        skinImages.fatTeto = fatTetoUrl;
-        imgFatTeto.src = fatTetoUrl;
-        imgFatTetoRight.src = fatTetoUrl;
-      }
-      if (peartoUrl) {
-        skinImages.pearto = peartoUrl;
-        imgPearto.src = peartoUrl;
-      }
-      if (potetoUrl) {
-        skinImages.poteto = potetoUrl;
-        imgPoteto.src = potetoUrl;
-      }
-
-      renderPose();
-      updateUI();
-    })();
-
-    // Modals
     shopOpenBtn.addEventListener('click', () => {
       skinsOverlay.classList.remove('is-open');
       updateUI();
@@ -1068,7 +938,6 @@
       if (e.target === skinsOverlay) skinsOverlay.classList.remove('is-open');
     });
 
-    // Shop Purchases
     buyUpgradeBtn.addEventListener('click', () => {
       const cost = getUpgradeCost();
       if (baguettes < cost) return;
@@ -1087,7 +956,6 @@
       updateUI();
     });
 
-    // Spin Controls
     function turnTeto() {
       currentPose = (currentPose + 1) % 4;
       renderPose();
@@ -1113,7 +981,6 @@
       steelBallBtn.setAttribute('aria-pressed', String(spinActive));
     });
 
-    // Track spinning Fat Teto for 1 minute (60s) to unlock Poteto
     let saveTickCount = 0;
     setInterval(() => {
       if (!document.hidden && hasBall && spinActive && fatTetoEquipped && canSpinSkin() && !unlocked.poteto) {
@@ -1129,7 +996,6 @@
       }
     }, 250);
 
-    // Jumping Baguette Particles
     const activeParticles = [];
     let lastFrameTime = 0;
     let animRunning = false;
@@ -1144,14 +1010,10 @@
       const startX = rect.left + rect.width * (0.35 + Math.random() * 0.3) - 17;
       const startY = rect.top + rect.height * (0.3 + Math.random() * 0.25) - 17;
 
-      const el = skinImages.baguette ? document.createElement('img') : document.createElement('div');
-      if (skinImages.baguette) {
-        el.src = skinImages.baguette;
-        el.alt = '';
-        el.draggable = false;
-      } else {
-        el.textContent = '🥖';
-      }
+      const el = document.createElement('img');
+      el.src = BAGUETTE_IMG;
+      el.alt = '';
+      el.draggable = false;
       el.className = 'baguette-particle';
       document.body.appendChild(el);
 
@@ -1206,7 +1068,6 @@
       }
     }
 
-    // Instant Stacking Web Audio (shared across all skins)
     const SOUND_URL = 'teto-sound.mp3.mp3';
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const audioCtx = AudioCtx ? new AudioCtx() : null;
